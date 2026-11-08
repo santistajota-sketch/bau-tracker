@@ -1,20 +1,1357 @@
-<!doctype html>
-<html lang="pt-BR" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Fight Flow — Conhecimento. Comunidade. Evolução. Plataforma demonstrativa sobre lutas e artes marciais." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>Fight Flow — Conhecimento. Comunidade. Evolução.</title>
-    <script>
-      try { var s = JSON.parse(localStorage.getItem('fightflow-store') || '{}'); if (s.state && s.state.theme) document.documentElement.dataset.theme = s.state.theme; } catch (e) {}
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baú Tracker — Token da Loja Pirata</title>
+  <meta name="description" content="Contador de baús e simulador de probabilidade para o token da Loja Pirata do Fortnite.">
+  <meta name="theme-color" content="#070b18">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
+  <!-- Fontes do Google (opcional: se não carregarem, o site usa fontes do sistema) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Lilita+One&display=swap" rel="stylesheet">
+  <style>
+/* =========================================================
+   Baú Tracker — estilos
+   Tema escuro com azul, dourado e amarelo.
+   ========================================================= */
+
+:root {
+  --bg: #070b18;
+  --card: #0f1734;
+  --card2: #152150;
+  --line: rgba(94, 170, 255, 0.18);
+  --text: #eaf0ff;
+  --muted: #93a1c9;
+  --blue: #2f8fff;
+  --blue2: #5ec8ff;
+  --gold: #f5b82e;
+  --yellow: #ffe14d;
+  --danger: #ff5d6c;
+  --ok: #3ddc97;
+  --radius: 16px;
+  --font-display: 'Lilita One', 'Arial Black', Impact, system-ui, sans-serif;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 600px at 5% -10%, rgba(47, 143, 255, 0.20), transparent 60%),
+    radial-gradient(900px 500px at 105% 0%, rgba(245, 184, 46, 0.12), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+a { color: var(--blue2); }
+code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 6px; font-size: .9em; }
+
+kbd {
+  display: inline-block;
+  min-width: 26px;
+  padding: 2px 8px;
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+  color: #1d1300;
+  background: linear-gradient(180deg, var(--yellow), var(--gold));
+  border-radius: 7px;
+  box-shadow: 0 2px 0 #a8740f;
+}
+
+.hidden { display: none !important; }
+
+/* ===== Cabeçalho ===== */
+.topbar {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 18px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-icon { font-size: 32px; filter: drop-shadow(0 0 10px rgba(245, 184, 46, .55)); }
+.brand h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 28px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  line-height: 1;
+  background: linear-gradient(180deg, var(--yellow), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.topbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+}
+.badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.badge.ok   { color: var(--ok);     border-color: rgba(61, 220, 151, .4); }
+.badge.warn { color: var(--yellow); border-color: rgba(255, 225, 77, .35); }
+.badge.err  { color: var(--danger); border-color: rgba(255, 93, 108, .4); }
+
+/* ===== Aviso ===== */
+.notice {
+  max-width: 1244px;
+  margin: 4px auto 6px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 225, 77, .3);
+  background: rgba(255, 225, 77, .07);
+  border-radius: 12px;
+  font-size: 14px;
+}
+.notice p { margin: 0; flex: 1; }
+@media (max-width: 1280px) { .notice { margin-left: 18px; margin-right: 18px; } }
+
+.icon-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.icon-btn:hover { color: var(--text); background: rgba(255,255,255,.08); }
+
+/* ===== Grade ===== */
+.grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 18px 20px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  grid-column: span 4;
+  position: relative;
+  min-width: 0;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--card2), var(--card));
+  box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.card-rate     { grid-column: span 12; padding-top: 12px; padding-bottom: 12px; }
+.card-goals    { grid-column: span 5; }
+.card-chart    { grid-column: span 7; }
+.card-tokens   { grid-column: span 4; }
+.card-settings { grid-column: span 8; }
+.card-history  { grid-column: span 6; }
+.card-bridge   { grid-column: span 6; }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.card-head .card-title { margin: 0; }
+
+.card-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--blue2);
+}
+
+.big-number {
+  font-family: var(--font-display);
+  font-size: clamp(46px, 6.5vw, 80px);
+  line-height: 1;
+  margin: 8px 0 10px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 4px 0 rgba(0,0,0,.35);
+  overflow-wrap: anywhere;
+}
+#cumChance, #missChance { font-size: clamp(36px, 4.6vw, 60px); }
+.gold { color: var(--gold); }
+.blue { color: var(--blue2); }
+
+.sub  { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.tiny { font-size: 12px; }
+.hint { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+
+/* Número com “+1” flutuante */
+.number-wrap { position: relative; display: inline-block; }
+.float-plus {
+  position: absolute;
+  right: -34px;
+  top: 4px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--yellow);
+  opacity: 0;
+  pointer-events: none;
+}
+.float-plus.show { animation: floatUp .7s ease-out; }
+@keyframes floatUp {
+  0%   { opacity: 0; transform: translateY(10px); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-26px); }
+}
+.bump { animation: bump .3s ease; }
+@keyframes bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ===== Botões ===== */
+.btn {
+  appearance: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--text);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line);
+  padding: 9px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .12s, background .2s, border-color .2s, color .2s;
+}
+.btn:hover { background: rgba(94, 200, 255, .1); border-color: rgba(94, 200, 255, .45); }
+.btn:active { transform: translateY(1px) scale(.98); }
+.btn:focus-visible, .segmented button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--blue2);
+  outline-offset: 2px;
+}
+.btn.small { padding: 6px 11px; font-size: 13px; border-radius: 10px; }
+
+.btn-primary {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #2a1a00;
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--yellow), var(--gold));
+  box-shadow: 0 4px 0 #b07a10, 0 8px 22px rgba(245, 184, 46, .25);
+}
+.btn-primary:hover { background: linear-gradient(180deg, #fff07a, #ffc542); border-color: transparent; }
+.btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 #b07a10; }
+.btn-xl { width: 100%; font-size: 24px; padding: 12px 20px; margin-top: 10px; }
+
+.btn-gold-outline {
+  width: 100%;
+  border-color: rgba(245, 184, 46, .5);
+  color: var(--yellow);
+}
+.btn-gold-outline:hover { background: rgba(245, 184, 46, .12); border-color: var(--gold); }
+
+.btn-danger:hover { color: var(--danger); border-color: rgba(255, 93, 108, .6); background: rgba(255, 93, 108, .08); }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.btn-row .btn { flex: 1 1 auto; }
+
+/* ===== Botões segmentados ===== */
+.segmented { display: flex; gap: 6px; flex-wrap: wrap; }
+.segmented button {
+  appearance: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.segmented button:hover { color: var(--text); }
+.segmented button.active {
+  color: #fff;
+  background: linear-gradient(180deg, #4aa3ff, var(--blue));
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(94, 200, 255, .3), 0 4px 14px rgba(47, 143, 255, .3);
+}
+.segmented.small button { padding: 4px 10px; font-size: 12px; }
+
+/* ===== Barra de progresso ===== */
+.meter { height: 10px; background: rgba(255,255,255,.07); border-radius: 999px; overflow: hidden; }
+.meter-fill {
+  height: 100%;
+  width: 0;
+  min-width: 3px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--gold));
+  transition: width .45s ease;
+}
+
+/* ===== Estatísticas ===== */
+.stats { margin: 12px 0 0; display: grid; gap: 6px; }
+.stats div { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding-top: 6px; }
+.stats dt { color: var(--muted); font-size: 13px; }
+.stats dd { margin: 0; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ===== Metas ===== */
+.goals { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 9px; }
+.goal { display: grid; grid-template-columns: 52px 1fr; gap: 4px 12px; align-items: center; }
+.goal-pct {
+  grid-row: span 2;
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--gold);
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 10px;
+  background: rgba(245, 184, 46, .08);
+  border: 1px solid rgba(245, 184, 46, .25);
+}
+.goal-text { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; flex-wrap: wrap; }
+.goal-text strong { font-variant-numeric: tabular-nums; }
+.goal-text span { color: var(--muted); font-size: 12px; }
+.goal .meter { height: 6px; }
+.goal.done .goal-pct { color: #062016; background: var(--ok); border-color: transparent; }
+.goal.done .goal-text strong { color: var(--ok); }
+
+/* ===== Gráfico ===== */
+.chart-wrap { position: relative; height: 270px; margin-top: 6px; }
+.chart-wrap canvas { display: block; width: 100%; height: 100%; }
+
+/* ===== Formulário ===== */
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.form-row:last-child { border-bottom: 0; }
+.form-row label { font-weight: 600; }
+.inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--muted); }
+
+input[type="number"], input[type="text"], input[type="url"] {
+  width: 130px;
+  padding: 7px 10px;
+  font: inherit;
+  color: var(--text);
+  background: #0a1128;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+input.wide { width: min(100%, 320px); }
+
+/* Interruptor (checkbox estilizado) */
+.switch {
+  appearance: none;
+  width: 46px;
+  height: 26px;
+  margin: 0;
+  position: relative;
+  cursor: pointer;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid var(--line);
+  transition: background .2s;
+  flex: none;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #cfd8f5;
+  transition: transform .2s;
+}
+.switch:checked { background: var(--blue); }
+.switch:checked::after { transform: translateX(20px); background: #fff; }
+
+/* ===== Histórico ===== */
+.history { list-style: none; margin: 4px 0 0; padding: 0; max-height: 300px; overflow: auto; }
+.history li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.history li:last-child { border-bottom: 0; }
+.history .h-date { color: var(--muted); font-size: 12px; }
+.history .h-main { font-weight: 700; }
+.history .h-tag { align-self: center; grid-row: span 2; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--muted); }
+.history .h-tag.win { background: rgba(245, 184, 46, .15); color: var(--yellow); }
+.history .empty { color: var(--muted); display: block; }
+
+/* ===== Rodapé ===== */
+.footer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4px 18px 30px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.footer p { margin: 6px 0; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 1060px) {
+  .card, .card-tokens, .card-goals, .card-history, .card-bridge { grid-column: span 6; }
+  .card-chart, .card-settings, .card-rate { grid-column: span 12; }
+}
+@media (max-width: 680px) {
+  .grid { gap: 10px; padding: 6px 10px 16px; }
+  .card, .card-tokens, .card-goals, .card-history, .card-bridge { grid-column: span 12; }
+  .card { padding: 14px; }
+  .chart-wrap { height: 230px; }
+  .notice { margin-left: 10px; margin-right: 10px; }
+  .topbar { padding: 12px 12px 6px; }
+}
+
+/* ===== Animações desligadas ===== */
+body.no-anim *, body.no-anim *::before, body.no-anim *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+
+  <!-- ===== Cabeçalho ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🪙</span>
+      <div>
+        <h1>Baú Tracker</h1>
+        <p>Token da Loja Pirata</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="focusBadge" class="badge" title="O atalho de teclado só funciona com a página em foco">…</span>
+      <span id="bridgeBadge" class="badge hidden" title="Integração local (aplicativo opcional)">App local</span>
+    </div>
+  </header>
+
+  <!-- ===== Aviso sobre teclas globais ===== -->
+  <div id="focusNotice" class="notice" role="note">
+    <p>
+      <strong>Importante:</strong> o atalho <kbd class="js-key-label">F8</kbd> só funciona quando
+      <strong>esta página está em foco</strong>. Com o Fortnite em primeiro plano, o navegador não recebe
+      as teclas — é uma regra de segurança de todos os navegadores, não dá para contornar com um site comum.
+      Para contar sem sair do jogo, veja a <a href="#integracao">integração local opcional</a>.
+    </p>
+    <button id="dismissNotice" class="icon-btn" aria-label="Fechar aviso">✕</button>
+  </div>
+
+  <main class="grid">
+
+    <!-- ===== Contador ===== -->
+    <section class="card card-counter">
+      <h2 class="card-title">Baús abertos</h2>
+      <div class="number-wrap">
+        <div id="chestCount" class="big-number">0</div>
+        <span id="floatPlus" class="float-plus" aria-hidden="true"></span>
+      </div>
+      <p class="sub">Sessão atual · iniciada em <span id="sessionStart">—</span></p>
+      <button id="btnAdd" class="btn btn-primary btn-xl">+1 Baú</button>
+      <div class="btn-row">
+        <button id="btnSub" class="btn" title="Remove o último baú contado">−1 Baú</button>
+        <button id="btnNewSession" class="btn" title="Guarda a sessão atual no histórico e começa outra">Nova sessão</button>
+        <button id="btnResetSession" class="btn btn-danger" title="Zera a sessão atual">Zerar</button>
+      </div>
+      <p class="hint">Atalho: <kbd class="js-key-label">F8</kbd> (com a página em foco)</p>
+    </section>
+
+    <!-- ===== Chance acumulada ===== -->
+    <section class="card card-chance">
+      <h2 class="card-title">Chance acumulada</h2>
+      <div id="cumChance" class="big-number gold">0%</div>
+      <div class="meter" aria-hidden="true"><div id="cumBar" class="meter-fill"></div></div>
+      <p class="sub">Probabilidade de já ter conseguido <strong>pelo menos 1 token</strong> com os baús desta sessão.</p>
+      <p class="sub tiny">Estimativa matemática — não é garantia.</p>
+    </section>
+
+    <!-- ===== Probabilidade de não ter conseguido ===== -->
+    <section class="card card-miss">
+      <h2 class="card-title">Probabilidade de não ter conseguido</h2>
+      <div id="missChance" class="big-number blue">100%</div>
+      <dl class="stats">
+        <div><dt>Chance por baú</dt><dd id="perChest">—</dd></div>
+        <div><dt>Média esperada até o 1º token</dt><dd id="expected">—</dd></div>
+        <div><dt>Mediana (50% de chance)</dt><dd id="median">—</dd></div>
+      </dl>
+    </section>
+
+    <!-- ===== Taxa em uso ===== -->
+    <section class="card card-rate">
+      <div class="card-head">
+        <h2 class="card-title">Taxa em uso agora</h2>
+        <div id="rateModes" class="segmented" role="radiogroup" aria-label="Taxa de drop">
+          <button type="button" data-mode="normal" role="radio">Normal</button>
+          <button type="button" data-mode="th15" role="radio">Treasure Hours 1,5x</button>
+          <button type="button" data-mode="th2" role="radio">Treasure Hours 2x</button>
+          <button type="button" data-mode="custom" role="radio">Personalizada</button>
+        </div>
+      </div>
+      <p class="sub" id="rateDesc"></p>
+    </section>
+
+    <!-- ===== Metas ===== -->
+    <section class="card card-goals">
+      <h2 class="card-title">Metas de probabilidade</h2>
+      <ul id="goals" class="goals"></ul>
+      <p class="sub tiny">“Faltam” considera a taxa em uso agora.</p>
+    </section>
+
+    <!-- ===== Gráfico ===== -->
+    <section class="card card-chart">
+      <div class="card-head">
+        <h2 class="card-title">Gráfico</h2>
+        <div id="scaleModes" class="segmented small" role="radiogroup" aria-label="Escala do eixo X">
+          <button type="button" data-scale="log" role="radio">Escala log</button>
+          <button type="button" data-scale="linear" role="radio">Escala linear</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart" role="img" aria-label="Probabilidade acumulada conforme o número de baús"></canvas>
+      </div>
+      <p class="sub tiny" id="chartNote"></p>
+    </section>
+
+    <!-- ===== Tokens ===== -->
+    <section class="card card-tokens">
+      <h2 class="card-title">Tokens conseguidos</h2>
+      <div id="tokenCount" class="big-number gold">0</div>
+      <button id="btnToken" class="btn btn-gold-outline">🎉 Consegui um token!</button>
+      <p class="sub tiny" id="tokenHint"></p>
+      <dl class="stats">
+        <div><dt>Baús em todas as sessões</dt><dd id="allChests">0</dd></div>
+        <div><dt>Sessões no histórico</dt><dd id="historyCount">0</dd></div>
+      </dl>
+    </section>
+
+    <!-- ===== Configurações ===== -->
+    <section class="card card-settings" id="config">
+      <h2 class="card-title">Configurações</h2>
+
+      <div class="form-row">
+        <label>Tecla para contar baús</label>
+        <div class="inline">
+          <kbd class="js-key-label">F8</kbd>
+          <button id="btnChangeKey" class="btn small">Alterar tecla</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="customOneIn">Probabilidade personalizada por baú</label>
+        <div class="inline">
+          <span>1 em</span>
+          <input id="customOneIn" type="number" min="1" step="any" inputmode="decimal">
+          <span>=</span>
+          <input id="customPct" type="number" min="0" max="100" step="any" inputmode="decimal">
+          <span>%</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="tokensInput">Tokens que já consegui</label>
+        <input id="tokensInput" type="number" min="0" step="1">
+      </div>
+
+      <div class="form-row">
+        <label for="resetOnToken">Iniciar nova sessão ao registrar um token</label>
+        <input id="resetOnToken" type="checkbox" class="switch">
+      </div>
+
+      <div class="form-row">
+        <label for="animations">Animações</label>
+        <input id="animations" type="checkbox" class="switch">
+      </div>
+
+      <div class="form-row">
+        <label>Dados</label>
+        <div class="inline">
+          <button id="btnExport" class="btn small">Exportar JSON</button>
+          <button id="btnImport" class="btn small">Importar JSON</button>
+          <input id="importFile" type="file" accept="application/json,.json" hidden>
+          <button id="btnResetAll" class="btn small btn-danger">Zerar todos os dados</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Histórico ===== -->
+    <section class="card card-history">
+      <h2 class="card-title">Histórico de sessões</h2>
+      <ul id="historyList" class="history"></ul>
+    </section>
+
+    <!-- ===== Integração local (opcional) ===== -->
+    <section class="card card-bridge" id="integracao">
+      <h2 class="card-title">Integração local (opcional)</h2>
+      <p class="sub">
+        Para contar com uma tecla <strong>enquanto o Fortnite está em foco</strong>, rode o pequeno
+        aplicativo em Python descrito no <code>README.md</code>. Ele só escuta a tecla escolhida e expõe
+        um contador em <code>127.0.0.1</code>; esta página lê esse contador. Nada é lido do jogo e nada é
+        enviado para ele.
+      </p>
+      <div class="form-row">
+        <label for="bridgeEnabled">Ler contador do app local</label>
+        <input id="bridgeEnabled" type="checkbox" class="switch">
+      </div>
+      <div class="form-row">
+        <label for="bridgeUrl">Endereço</label>
+        <input id="bridgeUrl" type="url" class="wide" spellcheck="false">
+      </div>
+      <p class="sub" id="bridgeStatus">Desativada.</p>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      Taxa oficial: <strong>1 em 137.500</strong> por baú em partida normal, com bônus em Treasure Hours —
+      publicado pelo Fortnite Status (@FortniteStatus) em 07/11/2026. Cada baú é uma tentativa independente;
+      não há sistema de garantia divulgado. Os valores podem mudar: ajuste nas configurações se a Epic atualizar.
+    </p>
+    <p class="tiny">Projeto de fã, sem afiliação com a Epic Games. Fortnite é marca registrada da Epic Games. Os dados ficam só no seu navegador (localStorage).</p>
+  </footer>
+
+  <script>
+/* =========================================================
+   Baú Tracker — lógica do site
+   JavaScript puro, sem dependências. Dados no localStorage.
+
+   Modelo matemático
+   -----------------
+   Segundo o Fortnite Status (X/Twitter, 07/11/2026), cada baú aberto em
+   partida normal tem 1 chance em 137.500 de dar o Pirate Shop Access
+   (token da Loja Pirata). Nas Treasure Hours a chance recebe um
+   multiplicador (1,5x ou 2x, conforme o evento). Cada baú é uma tentativa
+   independente e não há sistema de garantia ("pity") divulgado.
+
+   Com chance fixa p por baú, após n baús:
+       P(pelo menos 1 token) = 1 − (1 − p)^n
+
+   Como a taxa pode mudar no meio da sessão (Treasure Hours), guardamos
+   os baús em "segmentos" {p, n} e calculamos:
+       P(não ter conseguido) = Π (1 − p_i)^(n_i)
+   Usamos logaritmos (Math.log1p) para manter a precisão com p muito
+   pequeno.
+   ========================================================= */
+'use strict';
+
+/* ---------- Constantes ---------- */
+const STORAGE_KEY = 'bauTracker.v1';
+const OFFICIAL_ONE_IN = 137500;               // 1 em 137.500 (oficial, partida normal)
+const TARGETS = [0.5, 0.75, 0.9, 0.95, 0.99]; // metas de probabilidade acumulada
+
+const RATE_PRESETS = {
+  normal: { oneIn: OFFICIAL_ONE_IN,       desc: 'Partida normal: 1 em 137.500 por baú (oficial — Fortnite Status, 07/11/2026).' },
+  th15:   { oneIn: OFFICIAL_ONE_IN / 1.5, desc: 'Treasure Hours com bônus de 1,5x: ≈ 1 em 91.667 por baú. Use só durante o evento.' },
+  th2:    { oneIn: OFFICIAL_ONE_IN / 2,   desc: 'Treasure Hours com bônus de 2x: 1 em 68.750 por baú. Use só durante o evento.' },
+  custom: { oneIn: null,                  desc: 'Taxa personalizada definida nas configurações.' }
+};
+
+/* ---------- Formatação (pt-BR) ---------- */
+const nfInt = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+const nfCompact = new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+const dtf = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+const fmtInt = (n) => nfInt.format(n);
+const fmtDate = (iso) => { try { return dtf.format(new Date(iso)); } catch { return '—'; } };
+
+/** Casas decimais suficientes para mostrar a parte "pequena" de uma porcentagem. */
+function decimalsFor(smallPct) {
+  if (smallPct >= 10) return 1;
+  if (smallPct >= 1) return 2;
+  return Math.min(8, 2 - Math.floor(Math.log10(smallPct)));
+}
+
+/** Formata uma fração (0–1) como porcentagem, sem arredondar 99,999…% para 100%. */
+function fmtPct(f) {
+  if (!Number.isFinite(f)) return '—';
+  if (f <= 0) return '0%';
+  if (f >= 1) return '100%';
+  const v = f * 100;
+  const d = decimalsFor(Math.min(v, 100 - v));
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+}
+
+/* ---------- Estado ---------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+function newSession() {
+  return { id: uid(), start: new Date().toISOString(), segments: [], tokens: 0 };
+}
+
+function defaultState() {
+  return {
+    version: 1,
+    settings: {
+      key: 'F8',               // KeyboardEvent.code
+      keyLabel: 'F8',
+      rateMode: 'normal',      // normal | th15 | th2 | custom
+      customOneIn: OFFICIAL_ONE_IN,
+      resetOnToken: true,
+      animations: true,
+      chartScale: 'log',       // log | linear
+      noticeDismissed: false,
+      bridgeEnabled: false,
+      bridgeUrl: 'http://127.0.0.1:8765/status'
+    },
+    tokens: 0,
+    session: newSession(),
+    history: [],               // sessões encerradas
+    bridge: { id: null, count: 0 } // último valor lido do app local
+  };
+}
+
+/** Valida/normaliza dados vindos do localStorage ou de um JSON importado. */
+function normalize(raw) {
+  const d = defaultState();
+  if (!raw || typeof raw !== 'object') return d;
+
+  const s = raw.settings || {};
+  const str = (v, def) => (typeof v === 'string' && v ? v : def);
+  const bool = (v, def) => (typeof v === 'boolean' ? v : def);
+  const num = (v, def, min = 0) => (Number.isFinite(+v) && +v >= min ? +v : def);
+
+  d.settings.key = str(s.key, d.settings.key);
+  d.settings.keyLabel = str(s.keyLabel, d.settings.keyLabel);
+  d.settings.rateMode = RATE_PRESETS[s.rateMode] ? s.rateMode : d.settings.rateMode;
+  d.settings.customOneIn = num(s.customOneIn, d.settings.customOneIn, 1);
+  d.settings.resetOnToken = bool(s.resetOnToken, d.settings.resetOnToken);
+  d.settings.animations = bool(s.animations, d.settings.animations);
+  d.settings.chartScale = s.chartScale === 'linear' ? 'linear' : 'log';
+  d.settings.noticeDismissed = bool(s.noticeDismissed, false);
+  d.settings.bridgeEnabled = bool(s.bridgeEnabled, false);
+  d.settings.bridgeUrl = str(s.bridgeUrl, d.settings.bridgeUrl);
+
+  d.tokens = Math.floor(num(raw.tokens, 0));
+
+  const cleanSegments = (segs) => (Array.isArray(segs) ? segs : [])
+    .map((g) => ({ p: +g.p, n: Math.floor(+g.n) }))
+    .filter((g) => g.p > 0 && g.p < 1 && g.n > 0);
+
+  const cleanSession = (x) => (x && typeof x === 'object' ? {
+    id: str(x.id, uid()),
+    start: str(x.start, new Date().toISOString()),
+    end: typeof x.end === 'string' ? x.end : undefined,
+    segments: cleanSegments(x.segments),
+    tokens: Math.floor(num(x.tokens, 0))
+  } : null);
+
+  d.session = cleanSession(raw.session) || newSession();
+  delete d.session.end;
+  d.history = (Array.isArray(raw.history) ? raw.history : []).map(cleanSession).filter(Boolean);
+
+  if (raw.bridge && typeof raw.bridge === 'object') {
+    d.bridge = { id: raw.bridge.id == null ? null : String(raw.bridge.id), count: num(raw.bridge.count, 0) };
+  }
+  return d;
+}
+
+function loadState() {
+  try { return normalize(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
+  catch { return defaultState(); }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { console.warn('Não foi possível salvar no localStorage', e); }
+}
+
+let state = loadState();
+
+/* ---------- Cálculos ---------- */
+
+/** Chance por baú (p) da taxa em uso agora. */
+function currentP() {
+  const s = state.settings;
+  const oneIn = s.rateMode === 'custom' ? s.customOneIn : RATE_PRESETS[s.rateMode].oneIn;
+  return 1 / Math.max(1, oneIn);
+}
+
+const countChests = (segs) => segs.reduce((acc, g) => acc + g.n, 0);
+
+/** ln(P de não ter conseguido) = Σ n_i · ln(1 − p_i) */
+const logMiss = (segs) => segs.reduce((acc, g) => acc + g.n * Math.log1p(-g.p), 0);
+
+/** Probabilidade acumulada de pelo menos 1 token. −expm1(x) = 1 − e^x com precisão. */
+const hitProb = (segs) => -Math.expm1(logMiss(segs));
+
+/** Quantos baús faltam (na taxa atual) para atingir a meta T. */
+function chestsToTarget(T, lnMissNow, p) {
+  const need = Math.log(1 - T);           // ln(1 − T), negativo
+  if (lnMissNow <= need) return 0;        // já atingida
+  return Math.ceil((need - lnMissNow) / Math.log1p(-p) - 1e-9);
+}
+
+/* ---------- Ações ---------- */
+
+function addChests(n = 1) {
+  if (!(n > 0)) return;
+  const p = currentP();
+  const segs = state.session.segments;
+  const last = segs[segs.length - 1];
+  if (last && last.p === p) last.n += n;
+  else segs.push({ p, n });
+  saveState();
+  render();
+  celebrate(n);
+}
+
+function removeChest() {
+  const segs = state.session.segments;
+  const last = segs[segs.length - 1];
+  if (!last) return;
+  last.n -= 1;
+  if (last.n <= 0) segs.pop();
+  saveState();
+  render();
+}
+
+/** Encerra a sessão atual (guarda no histórico se tiver algo) e inicia outra. */
+function startNewSession() {
+  const cur = state.session;
+  if (countChests(cur.segments) > 0 || cur.tokens > 0) {
+    state.history.unshift({ ...cur, end: new Date().toISOString() });
+  }
+  state.session = newSession();
+}
+
+function registerToken() {
+  state.tokens += 1;
+  state.session.tokens += 1;
+  if (state.settings.resetOnToken) startNewSession();
+  saveState();
+  render();
+}
+
+/* ---------- Elementos ---------- */
+const $ = (id) => document.getElementById(id);
+const els = {
+  chestCount: $('chestCount'), floatPlus: $('floatPlus'), sessionStart: $('sessionStart'),
+  cumChance: $('cumChance'), cumBar: $('cumBar'), missChance: $('missChance'),
+  perChest: $('perChest'), expected: $('expected'), median: $('median'),
+  rateModes: $('rateModes'), rateDesc: $('rateDesc'), goals: $('goals'),
+  scaleModes: $('scaleModes'), chart: $('chart'), chartNote: $('chartNote'),
+  tokenCount: $('tokenCount'), tokenHint: $('tokenHint'), allChests: $('allChests'), historyCount: $('historyCount'),
+  historyList: $('historyList'), focusBadge: $('focusBadge'), bridgeBadge: $('bridgeBadge'),
+  focusNotice: $('focusNotice'), btnChangeKey: $('btnChangeKey'),
+  customOneIn: $('customOneIn'), customPct: $('customPct'), tokensInput: $('tokensInput'),
+  resetOnToken: $('resetOnToken'), animations: $('animations'), importFile: $('importFile'),
+  bridgeEnabled: $('bridgeEnabled'), bridgeUrl: $('bridgeUrl'), bridgeStatus: $('bridgeStatus')
+};
+
+/* ---------- Renderização ---------- */
+
+function render() {
+  const s = state.settings;
+  const segs = state.session.segments;
+  const chests = countChests(segs);
+  const p = currentP();
+  const lnMiss = logMiss(segs);
+  const hit = hitProb(segs);
+  const miss = 1 - hit;
+
+  document.body.classList.toggle('no-anim', !s.animations);
+
+  // Contador e probabilidades
+  els.chestCount.textContent = fmtInt(chests);
+  els.sessionStart.textContent = fmtDate(state.session.start);
+  els.cumChance.textContent = fmtPct(hit);
+  els.cumBar.style.width = (hit * 100).toFixed(3) + '%';
+  els.missChance.textContent = fmtPct(miss);
+  els.perChest.textContent = `${fmtPct(p)} (1 em ${fmtInt(Math.round(1 / p))})`;
+  // Distribuição geométrica: média = 1/p; mediana = menor n com P ≥ 50%
+  els.expected.textContent = `${fmtInt(Math.round(1 / p))} baús`;
+  els.median.textContent = `${fmtInt(Math.ceil(Math.log(0.5) / Math.log1p(-p)))} baús`;
+
+  // Tecla configurada
+  document.querySelectorAll('.js-key-label').forEach((k) => { k.textContent = s.keyLabel; });
+
+  // Taxa em uso
+  els.rateModes.querySelectorAll('button').forEach((b) => {
+    const on = b.dataset.mode === s.rateMode;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', on);
+  });
+  els.rateDesc.textContent = s.rateMode === 'custom'
+    ? `Taxa personalizada: 1 em ${fmtInt(s.customOneIn)} por baú (${fmtPct(1 / s.customOneIn)}).`
+    : RATE_PRESETS[s.rateMode].desc;
+
+  // Metas
+  els.goals.innerHTML = TARGETS.map((T) => {
+    const left = chestsToTarget(T, lnMiss, p);
+    const done = left === 0;
+    const totalAtRate = Math.ceil(Math.log(1 - T) / Math.log1p(-p) - 1e-9);
+    const prog = Math.min(1, hit / T);
+    return `<li class="goal${done ? ' done' : ''}">
+      <div class="goal-pct">${Math.round(T * 100)}%</div>
+      <div class="goal-text">
+        <strong>${done ? '✓ Atingida' : `Faltam ${fmtInt(left)} baús`}</strong>
+        <span>${fmtInt(totalAtRate)} baús no total, nesta taxa</span>
+      </div>
+      <div class="meter"><div class="meter-fill" style="width:${(prog * 100).toFixed(2)}%"></div></div>
+    </li>`;
+  }).join('');
+
+  // Tokens e totais
+  els.tokenCount.textContent = fmtInt(state.tokens);
+  els.tokenHint.textContent = s.resetOnToken
+    ? 'Ao registrar, a sessão atual vai para o histórico e a contagem recomeça.'
+    : 'Ao registrar, a contagem de baús continua (configurável).';
+  const allChests = chests + state.history.reduce((a, h) => a + countChests(h.segments), 0);
+  els.allChests.textContent = fmtInt(allChests);
+  els.historyCount.textContent = fmtInt(state.history.length);
+
+  // Escala do gráfico
+  els.scaleModes.querySelectorAll('button').forEach((b) => {
+    const on = b.dataset.scale === s.chartScale;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-checked', on);
+  });
+
+  // Configurações (não sobrescreve o campo que está sendo editado)
+  const setVal = (el, v) => { if (document.activeElement !== el) el.value = v; };
+  setVal(els.customOneIn, +s.customOneIn.toFixed(4));
+  setVal(els.customPct, +(100 / s.customOneIn).toPrecision(6));
+  setVal(els.tokensInput, state.tokens);
+  els.resetOnToken.checked = s.resetOnToken;
+  els.animations.checked = s.animations;
+  els.bridgeEnabled.checked = s.bridgeEnabled;
+  setVal(els.bridgeUrl, s.bridgeUrl);
+  els.bridgeBadge.classList.toggle('hidden', !s.bridgeEnabled);
+  els.focusNotice.classList.toggle('hidden', s.noticeDismissed);
+
+  renderHistory();
+  updateFocusBadge();
+  drawChart();
+}
+
+function renderHistory() {
+  if (!state.history.length) {
+    els.historyList.innerHTML = '<li><span class="empty">Nenhuma sessão encerrada ainda. Use “Nova sessão” para guardar a atual.</span></li>';
+    return;
+  }
+  els.historyList.innerHTML = state.history.slice(0, 100).map((h) => {
+    const n = countChests(h.segments);
+    const tag = h.tokens > 0
+      ? `<span class="h-tag win">🪙 ${h.tokens} token${h.tokens > 1 ? 's' : ''}</span>`
+      : '<span class="h-tag">sem token</span>';
+    return `<li>
+      <span class="h-main">${fmtInt(n)} baús · chance acumulada ${fmtPct(hitProb(h.segments))}</span>
+      ${tag}
+      <span class="h-date">${fmtDate(h.start)} → ${h.end ? fmtDate(h.end) : '—'}</span>
+    </li>`;
+  }).join('');
+}
+
+/** Animação discreta ao contar um baú. */
+function celebrate(n) {
+  if (!state.settings.animations) return;
+  const el = els.chestCount;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  const f = els.floatPlus;
+  f.textContent = `+${n}`;
+  f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+
+/* ---------- Gráfico (canvas, sem bibliotecas) ---------- */
+
+function niceStep(raw) {
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const m = raw / pow;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * pow;
+}
+
+function drawChart() {
+  const canvas = els.chart;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = rect.width, H = rect.height;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const css = getComputedStyle(document.documentElement);
+  const c = (v) => css.getPropertyValue(v).trim();
+  const C = { line: 'rgba(147,161,201,.16)', text: c('--muted'), blue: c('--blue2'), gold: c('--gold'), yellow: c('--yellow') };
+
+  const pad = { l: 44, r: 16, t: 14, b: 28 };
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+
+  const segs = state.session.segments;
+  const chests = countChests(segs);
+  const p = currentP();
+  const L = Math.log1p(-p);
+  const hit = hitProb(segs);
+  // Baús "equivalentes" na taxa atual (igual ao total se a taxa nunca mudou)
+  const nEq = logMiss(segs) / L;
+  const n99 = Math.log(0.01) / L;
+  const xMax = Math.max(n99 * 1.08, nEq * 1.15, 10);
+  const isLog = state.settings.chartScale === 'log';
+
+  const xOf = (n) => pad.l + pw * (isLog ? Math.log10(1 + n) / Math.log10(1 + xMax) : n / xMax);
+  const yOf = (P) => pad.t + ph * (1 - P);
+  const curve = (n) => -Math.expm1(n * L);
+
+  ctx.font = '11px Inter, system-ui, sans-serif';
+  ctx.lineWidth = 1;
+
+  // Grade horizontal (0–100%)
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  [0, 0.25, 0.5, 0.75, 1].forEach((v) => {
+    const y = yOf(v);
+    ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = C.text; ctx.fillText(`${v * 100}%`, pad.l - 6, y);
+  });
+
+  // Marcas do eixo X
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const ticks = [];
+  if (isLog) { for (let t = 1; t <= xMax; t *= 10) ticks.push(t); ticks.unshift(0); }
+  else { const st = niceStep(xMax / 5); for (let t = 0; t <= xMax; t += st) ticks.push(t); }
+  ticks.forEach((t) => {
+    const x = xOf(t);
+    ctx.strokeStyle = C.line; ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+    ctx.fillStyle = C.text; ctx.fillText(nfCompact.format(t), x, pad.t + ph + 7);
+  });
+
+  // Área preenchida até a contagem atual
+  const N = 320;
+  const nAt = (i, max) => (isLog ? Math.pow(10, (i / N) * Math.log10(1 + max)) - 1 : (i / N) * max);
+  if (nEq > 0) {
+    const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ph);
+    grad.addColorStop(0, 'rgba(245,184,46,.45)');
+    grad.addColorStop(1, 'rgba(245,184,46,.05)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.moveTo(xOf(0), yOf(0));
+    for (let i = 0; i <= N; i++) { const n = nAt(i, nEq); ctx.lineTo(xOf(n), yOf(curve(n))); }
+    ctx.lineTo(xOf(nEq), yOf(0)); ctx.closePath(); ctx.fill();
+  }
+
+  // Curva de probabilidade acumulada
+  ctx.strokeStyle = C.blue; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i <= N; i++) {
+    const n = nAt(i, xMax), x = xOf(n), y = yOf(curve(n));
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.stroke();
+
+  // Pontos das metas
+  ctx.lineWidth = 1;
+  TARGETS.forEach((T) => {
+    const n = Math.log(1 - T) / L, x = xOf(n), y = yOf(T);
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = 'rgba(94,200,255,.35)';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, pad.t + ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.blue; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Marcador da contagem atual
+  const mx = xOf(nEq), my = yOf(hit);
+  ctx.strokeStyle = C.yellow; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(mx, pad.t); ctx.lineTo(mx, pad.t + ph); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = C.yellow; ctx.strokeStyle = '#2a1a00'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(mx, my, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  const label = `Você: ${fmtInt(chests)} baús · ${fmtPct(hit)}`;
+  ctx.font = 'bold 12px Inter, system-ui, sans-serif';
+  const tw = ctx.measureText(label).width + 14;
+  let lx = mx + 10; if (lx + tw > W - pad.r) lx = mx - 10 - tw;
+  lx = Math.max(pad.l, lx);
+  const ly = Math.max(pad.t, Math.min(my - 30, pad.t + ph - 26));
+  ctx.fillStyle = 'rgba(7,11,24,.88)'; ctx.strokeStyle = 'rgba(255,225,77,.6)'; ctx.lineWidth = 1;
+  roundRect(ctx, lx, ly, tw, 22, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = C.yellow; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, lx + 7, ly + 11);
+
+  // Nota explicativa
+  const mixed = new Set(segs.map((g) => g.p)).size > 1 || (segs.length === 1 && segs[0].p !== p);
+  els.chartNote.textContent =
+    `Curva: P = 1 − (1 − p)^n com a taxa em uso (1 em ${fmtInt(Math.round(1 / p))}). Pontos azuis = metas de 50% a 99%.` +
+    (mixed ? ' Sua sessão mistura taxas diferentes; o marcador fica na posição equivalente da taxa atual.' : '') +
+    (isLog ? ' Eixo X em escala logarítmica.' : '');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* ---------- Teclado ---------- */
+let capturingKey = false;
+
+function keyLabelFor(e) {
+  if (e.code === 'Space') return 'Espaço';
+  if (e.key && e.key.length === 1) return e.key.toUpperCase();
+  return e.key || e.code;
+}
+
+const isTypingTarget = (t) =>
+  t && (t.isContentEditable || (t.tagName === 'INPUT' && !['checkbox', 'radio', 'button'].includes(t.type)) ||
+        t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+
+window.addEventListener('keydown', (e) => {
+  // Modo "escolher tecla"
+  if (capturingKey) {
+    e.preventDefault();
+    capturingKey = false;
+    els.btnChangeKey.textContent = 'Alterar tecla';
+    if (e.code !== 'Escape') {
+      state.settings.key = e.code;
+      state.settings.keyLabel = keyLabelFor(e);
+      saveState();
+    }
+    render();
+    return;
+  }
+  if (isTypingTarget(e.target) || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === state.settings.key) {
+    e.preventDefault();
+    addChests(1);
+  }
+}, true);
+
+/* ---------- Foco da página ---------- */
+function updateFocusBadge() {
+  const focused = document.hasFocus() && document.visibilityState === 'visible';
+  els.focusBadge.className = 'badge ' + (focused ? 'ok' : 'warn');
+  els.focusBadge.textContent = focused ? `Atalho ${state.settings.keyLabel} ativo` : 'Página sem foco: atalho inativo';
+}
+window.addEventListener('focus', updateFocusBadge);
+window.addEventListener('blur', updateFocusBadge);
+document.addEventListener('visibilitychange', updateFocusBadge);
+
+/* ---------- Integração local opcional ----------
+   Lê periodicamente um contador exposto por um app local (ver README).
+   Formato esperado: {"id": "<id da execução>", "count": <total de toques>}.
+   Só a diferença desde a última leitura é somada; ao trocar o id
+   (app reiniciado) a primeira leitura vira a nova base, sem somar nada. */
+let bridgeTimer = null, bridgeBusy = false;
+
+function setBridgeStatus(kind, msg) {
+  els.bridgeStatus.textContent = msg;
+  els.bridgeBadge.className = 'badge ' + (kind === 'ok' ? 'ok' : kind === 'err' ? 'err' : 'warn') +
+    (state.settings.bridgeEnabled ? '' : ' hidden');
+  els.bridgeBadge.textContent = kind === 'ok' ? 'App local conectado' : 'App local desconectado';
+}
+
+async function bridgeTick() {
+  if (!state.settings.bridgeEnabled || bridgeBusy) return;
+  bridgeBusy = true;
+  try {
+    const res = await fetch(state.settings.bridgeUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const id = String(data.id), count = Number(data.count);
+    if (!Number.isFinite(count)) throw new Error('resposta inválida');
+
+    state = loadState(); // relê para não contar em dobro com duas abas abertas
+    const b = state.bridge;
+    if (b.id !== id || count < b.count) {
+      state.bridge = { id, count };
+      saveState();
+    } else if (count > b.count) {
+      const delta = count - b.count;
+      state.bridge.count = count;
+      addChests(delta); // salva e renderiza
+    }
+    setBridgeStatus('ok', `Conectado ao app local — ${fmtInt(count)} toques desde que ele foi aberto.`);
+  } catch (err) {
+    setBridgeStatus('err', `Sem conexão com ${state.settings.bridgeUrl}. O app está rodando? (${err.message})`);
+  } finally {
+    bridgeBusy = false;
+  }
+}
+
+function restartBridge() {
+  clearInterval(bridgeTimer);
+  bridgeTimer = null;
+  if (!state.settings.bridgeEnabled) { setBridgeStatus('off', 'Desativada.'); return; }
+  setBridgeStatus('off', 'Conectando…');
+  bridgeTick();
+  bridgeTimer = setInterval(bridgeTick, 500);
+}
+
+/* ---------- Eventos da interface ---------- */
+$('btnAdd').addEventListener('click', () => addChests(1));
+$('btnSub').addEventListener('click', removeChest);
+
+$('btnNewSession').addEventListener('click', () => {
+  startNewSession();
+  saveState(); render();
+});
+
+$('btnResetSession').addEventListener('click', () => {
+  if (!confirm('Zerar a contagem da sessão atual? Essa sessão não vai para o histórico.')) return;
+  state.session = newSession();
+  saveState(); render();
+});
+
+$('btnToken').addEventListener('click', () => {
+  if (!confirm('Registrar que você conseguiu um token da Loja Pirata? 🎉')) return;
+  registerToken();
+});
+
+$('dismissNotice').addEventListener('click', () => {
+  state.settings.noticeDismissed = true;
+  saveState(); render();
+});
+
+els.rateModes.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-mode]');
+  if (!b) return;
+  state.settings.rateMode = b.dataset.mode;
+  saveState(); render();
+});
+
+els.scaleModes.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-scale]');
+  if (!b) return;
+  state.settings.chartScale = b.dataset.scale;
+  saveState(); render();
+});
+
+els.btnChangeKey.addEventListener('click', () => {
+  capturingKey = true;
+  els.btnChangeKey.textContent = 'Pressione uma tecla… (Esc cancela)';
+});
+
+// Probabilidade personalizada: "1 em N" ou "%"
+els.customOneIn.addEventListener('input', () => {
+  const v = parseFloat(els.customOneIn.value);
+  if (v >= 1) { state.settings.customOneIn = v; state.settings.rateMode = 'custom'; saveState(); render(); }
+});
+els.customPct.addEventListener('input', () => {
+  const v = parseFloat(els.customPct.value);
+  if (v > 0 && v <= 100) { state.settings.customOneIn = 100 / v; state.settings.rateMode = 'custom'; saveState(); render(); }
+});
+
+els.tokensInput.addEventListener('change', () => {
+  const v = Math.max(0, Math.floor(+els.tokensInput.value || 0));
+  state.tokens = v;
+  saveState(); render();
+});
+
+els.resetOnToken.addEventListener('change', () => { state.settings.resetOnToken = els.resetOnToken.checked; saveState(); render(); });
+els.animations.addEventListener('change', () => { state.settings.animations = els.animations.checked; saveState(); render(); });
+
+els.bridgeEnabled.addEventListener('change', () => {
+  state.settings.bridgeEnabled = els.bridgeEnabled.checked;
+  state.bridge = { id: null, count: 0 }; // nova base: não soma toques antigos
+  saveState(); render(); restartBridge();
+});
+els.bridgeUrl.addEventListener('change', () => {
+  state.settings.bridgeUrl = els.bridgeUrl.value.trim() || defaultState().settings.bridgeUrl;
+  state.bridge = { id: null, count: 0 };
+  saveState(); render(); restartBridge();
+});
+
+// Exportar / importar
+$('btnExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bau-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+$('btnImport').addEventListener('click', () => els.importFile.click());
+els.importFile.addEventListener('change', async () => {
+  const file = els.importFile.files[0];
+  els.importFile.value = '';
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data || typeof data !== 'object' || !data.session) throw new Error('arquivo não parece um backup do Baú Tracker');
+    if (!confirm('Importar este arquivo? Os dados atuais serão substituídos.')) return;
+    state = normalize(data);
+    state.bridge = { id: null, count: 0 };
+    saveState(); render(); restartBridge();
+  } catch (err) {
+    alert('Não foi possível importar: ' + err.message);
+  }
+});
+
+$('btnResetAll').addEventListener('click', () => {
+  if (!confirm('Apagar TODOS os dados (sessão, histórico, tokens e configurações)? Essa ação não pode ser desfeita.')) return;
+  state = defaultState();
+  saveState(); render(); restartBridge();
+});
+
+// Sincroniza se o site estiver aberto em mais de uma aba
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) { state = loadState(); render(); }
+});
+
+// Redesenha o gráfico quando o tamanho muda
+if ('ResizeObserver' in window) new ResizeObserver(() => drawChart()).observe(els.chart.parentElement);
+else window.addEventListener('resize', drawChart);
+
+/* ---------- Início ---------- */
+render();
+restartBridge();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawChart);
+
+</script>
+</body>
 </html>
